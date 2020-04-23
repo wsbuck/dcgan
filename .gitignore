@@ -1,0 +1,4 @@
+env/
+generated_images/
+training_checkpoints/
+*.pyc
