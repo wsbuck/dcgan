@@ -10,13 +10,13 @@ import time
 from tensorflow.keras import layers
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-# BATCH_SIZE = 64
-BATCH_SIZE = 1
+BATCH_SIZE = 64
+# BATCH_SIZE = 1
 NOISE_DIM = 100
 EPOCHS = 10000
 
-IMAGE_DIR = './data/celeba'
-# IMAGE_DIR = '/media/HDD/celeba-hq/images/celeba-hq/celeba-64'
+# IMAGE_DIR = './data/celeba'
+IMAGE_DIR = '/media/HDD/celeba-hq/images/celeba-hq/celeba-64'
 
 def make_generator_model():
     model = tf.keras.Sequential()
@@ -67,9 +67,9 @@ def make_discriminator_model():
     model.add(layers.LeakyReLU())
     model.add(layers.Dropout(0.3))
     
-    model.add(layers.Conv2D(1024, (4, 4), strides=(2, 2), padding='same'))
-    model.add(layers.LeakyReLU())
-    model.add(layers.Dropout(0.3))
+    # model.add(layers.Conv2D(1024, (4, 4), strides=(2, 2), padding='same'))
+    # model.add(layers.LeakyReLU())
+    # model.add(layers.Dropout(0.3))
 
     model.add(layers.Flatten())
     model.add(layers.Dense(1))
