@@ -126,7 +126,7 @@ def generate_and_save_images(model, epoch, test_input):
 
     for i in range(predictions.shape[0]):
         plt.subplot(4, 4, i + 1)
-        plt.imshow(predictions[i, :, :, 0] * 127.5 + 127.5)
+        plt.imshow((predictions[i, :, :, 3] * 127.5 + 127.5).astype(np.int))
         plt.axis('off')
     
     plt.savefig('./generated_images/image_at_epoch{:04d}.png'.format(epoch))
@@ -140,8 +140,8 @@ def train(dataset, epochs, steps):
     generator = make_generator_model()
     discriminator = make_discriminator_model()
 
-    generator_optimizer = tf.keras.optimizers.Adam(1e-4)
-    discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
+    generator_optimizer = tf.keras.optimizers.Adam(0.002, beta_1=0.5, beta_2=0.999)
+    discriminator_optimizer = tf.keras.optimizers.Adam(0.002, beta_1=0.5, beta_2=0.999)
     
     checkpoint_dir = './training_checkpoints'
     checkpoint_prefix = os.path.join(checkpoint_dir, 'ckpt')
