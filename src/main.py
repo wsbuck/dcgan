@@ -10,12 +10,13 @@ import time
 from tensorflow.keras import layers
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-BATCH_SIZE = 64
+# BATCH_SIZE = 64
+BATCH_SIZE = 1
 NOISE_DIM = 100
 EPOCHS = 10000
 
-#IMAGE_DIR = './data/celeba'
-IMAGE_DIR = '/media/HDD/celeba-hq/images/celeba-hq/celeba-64'
+IMAGE_DIR = './data/celeba'
+# IMAGE_DIR = '/media/HDD/celeba-hq/images/celeba-hq/celeba-64'
 
 def make_generator_model():
     model = tf.keras.Sequential()
@@ -108,6 +109,16 @@ def train_step(images, generator, discriminator, generator_optimizer, discrimina
     generator_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
     discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
 
+def get_loss(images, generator, discriminator):
+    noise = tf.random.normal([BATCH_SIZE, NOISE_DIM])
+    generated_images = generator(noise, training=False)
+
+    real_output = discriminator(images, training=False)
+    fake_output = discriminator(generated_images, training=True)
+    gen_loss = generator_loss(fake_output)
+    disc_loss = discriminator_loss(real_output, fake_output)
+    return gen_loss, disc_loss
+
 
 def generate_and_save_images(model, epoch, test_input):
     predictions = model(test_input, training=False)
@@ -119,6 +130,7 @@ def generate_and_save_images(model, epoch, test_input):
         plt.axis('off')
     
     plt.savefig('./generated_images/image_at_epoch{:04d}.png'.format(epoch))
+    plt.close()
 
 def train(dataset, epochs, steps):
     num_examples_to_generate = 16
@@ -127,7 +139,7 @@ def train(dataset, epochs, steps):
     seed = tf.random.normal([num_examples_to_generate, NOISE_DIM])
     generator = make_generator_model()
     discriminator = make_discriminator_model()
-    
+
     generator_optimizer = tf.keras.optimizers.Adam(1e-4)
     discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
     
@@ -142,8 +154,6 @@ def train(dataset, epochs, steps):
 
     for epoch in range(epochs):
         start = time.time()
-
-        # for image_batch in dataset:
         for step in range(steps):
             progbar.update(step + 1)
             image_batch, _ = dataset.next()
@@ -153,14 +163,21 @@ def train(dataset, epochs, steps):
 
         if (epoch + 1) % 15 == 0:
             checkpoint.save(file_prefix = checkpoint_prefix)
+        
         print('Time for epoch {} is {} sec'.format(epoch + 1, time.time() - start))
+        print("*" * 20)
+        print("Gen Loss & Disc Loss")
+        gen_loss, disc_loss = get_loss(image_batch, generator, discriminator)
+        tf.print(gen_loss)
+        tf.print(disc_loss)
+        print("*" * 20)
 
     generate_and_save_images(generator, epochs, seed)
 
 
 def preprocess_input(img):
-    img = img - 127.0
-    img = img / 127.0
+    img = img - 127.5
+    img = img / 127.5
     return img
 
 
