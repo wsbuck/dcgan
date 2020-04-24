@@ -12,7 +12,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 BATCH_SIZE = 64
 NOISE_DIM = 100
-EPOCHS = 10
+EPOCHS = 10000
 
 #IMAGE_DIR = './data/celeba'
 IMAGE_DIR = '/media/HDD/celeba-hq/images/celeba-hq/celeba-64'
@@ -122,6 +122,7 @@ def generate_and_save_images(model, epoch, test_input):
 
 def train(dataset, epochs, steps):
     num_examples_to_generate = 16
+    progbar = tf.keras.utils.Progbar(steps)
 
     seed = tf.random.normal([num_examples_to_generate, NOISE_DIM])
     generator = make_generator_model()
@@ -143,7 +144,8 @@ def train(dataset, epochs, steps):
         start = time.time()
 
         # for image_batch in dataset:
-        for _ in range(steps):
+        for step in range(steps):
+            progbar.update(step + 1)
             image_batch, _ = dataset.next()
             train_step(image_batch, generator, discriminator, generator_optimizer, discriminator_optimizer)
         
