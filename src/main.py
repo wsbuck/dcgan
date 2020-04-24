@@ -14,7 +14,7 @@ BATCH_SIZE = 64
 NOISE_DIM = 100
 EPOCHS = 10
 
-IMAGE_DIR = './data/celeba/'
+IMAGE_DIR = './data/celeba'
 
 def make_generator_model():
     model = tf.keras.Sequential()
@@ -23,7 +23,7 @@ def make_generator_model():
     model.add(layers.LeakyReLU())
 
     model.add(layers.Reshape((7, 7, 256)))
-    assert model.output_shape == (None, 7, 7, 128)  # None is the batch size
+    assert model.output_shape == (None, 7, 7, 256)  # None is the batch size
 
     model.add(layers.Conv2DTranspose(
         128, (5, 5), strides=(1, 1), padding='same', use_bias=False))
@@ -105,7 +105,7 @@ def generate_and_save_images(model, epoch, test_input):
     
     plt.savefig('./generated_images/image_at_epoch{:04d}.png'.format(epoch))
 
-def train(dataset, epochs):
+def train(dataset, epochs, steps):
     num_examples_to_generate = 16
 
     seed = tf.random.normal([num_examples_to_generate, NOISE_DIM])
@@ -127,7 +127,9 @@ def train(dataset, epochs):
     for epoch in range(epochs):
         start = time.time()
 
-        for image_batch in dataset:
+        # for image_batch in dataset:
+        for _ in range(steps):
+            image_batch = dataset.next()
             train_step(image_batch, generator, discriminator, generator_optimizer, discriminator_optimizer)
         
         generate_and_save_images(generator, epoch + 1, seed)
@@ -139,14 +141,28 @@ def train(dataset, epochs):
     generate_and_save_images(generator, epochs, seed)
 
 
+def preprocess_input(img):
+    img = img - 127.0
+    img = img / 127.0
+    return img
+
+
 def main():
+    num_images = len(os.listdir(os.path.join(IMAGE_DIR, 'images')))
+    steps = num_images // BATCH_SIZE
+
     train_datagen = ImageDataGenerator(
-        featurewise_center=True,
+        preprocessing_function=preprocess_input,
         rotation_range=20,
         horizontal_flip=True
     )
-    train(train_dataset, EPOCHS)
+    train_generator = train_datagen.flow_from_directory(
+        IMAGE_DIR,
+        target_size=(64, 64),
+        batch_size=BATCH_SIZE,
+        shuffle=True
+    )
+    train(train_generator, EPOCHS, steps)
 
-
-
-
+if __name__ == "__main__":
+    main()

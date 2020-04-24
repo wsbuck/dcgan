@@ -1,4 +1,7 @@
 env/
 generated_images/
 training_checkpoints/
+data/
 *.pyc
+*.ipynb
+.DS_Store
