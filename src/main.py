@@ -28,19 +28,19 @@ def make_generator_model():
     assert model.output_shape == (None, 4, 4, 1024)  # None is the batch size
 
     model.add(layers.Conv2DTranspose(
-        512, (8, 8), strides=(2, 2), padding='same', use_bias=False))
+        512, (4, 4), strides=(1, 1), padding='same', use_bias=False))
     assert model.output_shape == (None, 8, 8, 512)
     model.add(layers.BatchNormalization())
     model.add(layers.LeakyReLU())
 
     model.add(layers.Conv2DTranspose(
-        256, (16, 16), strides=(2, 2), padding='same', use_bias=False))
+        256, (4, 4), strides=(2, 2), padding='same', use_bias=False))
     assert model.output_shape == (None, 16, 16, 256)
     model.add(layers.BatchNormalization())
     model.add(layers.LeakyReLU())
     
     model.add(layers.Conv2DTranspose(
-        128, (32, 32), strides=(2, 2), padding='same', use_bias=False))
+        128, (4, 4), strides=(2, 2), padding='same', use_bias=False))
     assert model.output_shape == (None, 32, 32, 128)
     model.add(layers.BatchNormalization())
     model.add(layers.LeakyReLU())
@@ -54,20 +54,20 @@ def make_generator_model():
 
 def make_discriminator_model():
     model = tf.keras.Sequential()
-    model.add(layers.Conv2D(128, (32, 32), strides=(2, 2), padding='same',
+    model.add(layers.Conv2D(128, (4, 4), strides=(2, 2), padding='same',
                             input_shape=[64, 64, 3]))
     model.add(layers.LeakyReLU())
     model.add(layers.Dropout(0.3))
 
-    model.add(layers.Conv2D(256, (16, 16), strides=(2, 2), padding='same'))
+    model.add(layers.Conv2D(256, (4, 4), strides=(2, 2), padding='same'))
     model.add(layers.LeakyReLU())
     model.add(layers.Dropout(0.3))
     
-    model.add(layers.Conv2D(512, (8, 8), strides=(2, 2), padding='same'))
+    model.add(layers.Conv2D(512, (4, 4), strides=(2, 2), padding='same'))
     model.add(layers.LeakyReLU())
     model.add(layers.Dropout(0.3))
     
-    model.add(layers.Conv2D(1024, (4, 4), strides=(2, 2), padding='same'))
+    model.add(layers.Conv2D(1024, (4, 4), strides=(1, 1), padding='same'))
     model.add(layers.LeakyReLU())
     model.add(layers.Dropout(0.3))
 
