@@ -14,7 +14,8 @@ BATCH_SIZE = 64
 NOISE_DIM = 100
 EPOCHS = 10
 
-IMAGE_DIR = './data/celeba'
+#IMAGE_DIR = './data/celeba'
+IMAGE_DIR = '/media/HDD/celeba-hq/images/celeba-hq/celeba-64'
 
 def make_generator_model():
     model = tf.keras.Sequential()
@@ -143,7 +144,7 @@ def train(dataset, epochs, steps):
 
         # for image_batch in dataset:
         for _ in range(steps):
-            image_batch = dataset.next()
+            image_batch, _ = dataset.next()
             train_step(image_batch, generator, discriminator, generator_optimizer, discriminator_optimizer)
         
         generate_and_save_images(generator, epoch + 1, seed)
