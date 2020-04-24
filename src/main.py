@@ -28,7 +28,7 @@ def make_generator_model():
     assert model.output_shape == (None, 4, 4, 1024)  # None is the batch size
 
     model.add(layers.Conv2DTranspose(
-        512, (4, 4), strides=(1, 1), padding='same', use_bias=False))
+        512, (4, 4), strides=(2, 2), padding='same', use_bias=False))
     assert model.output_shape == (None, 8, 8, 512)
     model.add(layers.BatchNormalization())
     model.add(layers.LeakyReLU())
@@ -67,7 +67,7 @@ def make_discriminator_model():
     model.add(layers.LeakyReLU())
     model.add(layers.Dropout(0.3))
     
-    model.add(layers.Conv2D(1024, (4, 4), strides=(1, 1), padding='same'))
+    model.add(layers.Conv2D(1024, (4, 4), strides=(2, 2), padding='same'))
     model.add(layers.LeakyReLU())
     model.add(layers.Dropout(0.3))
 
