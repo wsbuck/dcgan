@@ -16,7 +16,8 @@ NOISE_DIM = 100
 EPOCHS = 10000
 
 # IMAGE_DIR = './data/celeba'
-IMAGE_DIR = '/media/HDD/celeba-hq/images/celeba-hq/celeba-64'
+# IMAGE_DIR = '/media/HDD/celeba-hq/images/celeba-hq/celeba-64'
+IMAGE_DIR = '/media/HDD/celeba/align'
 
 def make_generator_model():
     model = tf.keras.Sequential()
@@ -45,7 +46,7 @@ def make_generator_model():
     model.add(layers.BatchNormalization())
     model.add(layers.LeakyReLU())
 
-    model.add(layers.Conv2DTranspose(3, (64, 64), strides=(2, 2),
+    model.add(layers.Conv2DTranspose(3, (4, 4), strides=(2, 2),
                                      padding='same', use_bias=False, activation='tanh'))
     assert model.output_shape == (None, 64, 64, 3)
 
@@ -54,22 +55,22 @@ def make_generator_model():
 
 def make_discriminator_model():
     model = tf.keras.Sequential()
-    model.add(layers.Conv2D(128, (4, 4), strides=(2, 2), padding='same',
+    model.add(layers.Conv2D(64, (4, 4), strides=(2, 2), padding='same',
                             input_shape=[64, 64, 3]))
     model.add(layers.LeakyReLU())
     model.add(layers.Dropout(0.3))
 
+    model.add(layers.Conv2D(128, (4, 4), strides=(2, 2), padding='same'))
+    model.add(layers.LeakyReLU())
+    model.add(layers.Dropout(0.3))
+    
     model.add(layers.Conv2D(256, (4, 4), strides=(2, 2), padding='same'))
     model.add(layers.LeakyReLU())
     model.add(layers.Dropout(0.3))
-    
-    model.add(layers.Conv2D(512, (4, 4), strides=(2, 2), padding='same'))
-    model.add(layers.LeakyReLU())
-    model.add(layers.Dropout(0.3))
-    
-    model.add(layers.Conv2D(1024, (4, 4), strides=(2, 2), padding='same'))
-    model.add(layers.LeakyReLU())
-    model.add(layers.Dropout(0.3))
+    #
+    #model.add(layers.Conv2D(1024, (4, 4), strides=(2, 2), padding='same'))
+    #model.add(layers.LeakyReLU())
+    #model.add(layers.Dropout(0.3))
 
     model.add(layers.Flatten())
     model.add(layers.Dense(1))
@@ -126,7 +127,7 @@ def generate_and_save_images(model, epoch, test_input):
 
     for i in range(predictions.shape[0]):
         plt.subplot(4, 4, i + 1)
-        plt.imshow((predictions[i, :, :, 3] * 127.5 + 127.5).astype(np.int))
+        plt.imshow((predictions[i, :, :, :] * 127.5 + 127.5))
         plt.axis('off')
     
     plt.savefig('./generated_images/image_at_epoch{:04d}.png'.format(epoch))
@@ -140,8 +141,10 @@ def train(dataset, epochs, steps):
     generator = make_generator_model()
     discriminator = make_discriminator_model()
 
-    generator_optimizer = tf.keras.optimizers.Adam(0.002, beta_1=0.5, beta_2=0.999)
-    discriminator_optimizer = tf.keras.optimizers.Adam(0.002, beta_1=0.5, beta_2=0.999)
+    #generator_optimizer = tf.keras.optimizers.Adam(0.002, beta_1=0.5, beta_2=0.999)
+    #discriminator_optimizer = tf.keras.optimizers.Adam(0.002, beta_1=0.5, beta_2=0.999)
+    generator_optimizer = tf.keras.optimizers.Adam(1e-4)
+    discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
     
     checkpoint_dir = './training_checkpoints'
     checkpoint_prefix = os.path.join(checkpoint_dir, 'ckpt')
@@ -154,7 +157,8 @@ def train(dataset, epochs, steps):
 
     for epoch in range(epochs):
         start = time.time()
-        for step in range(steps):
+        #for step in range(steps):
+        for step in range(10):
             progbar.update(step + 1)
             image_batch, _ = dataset.next()
             train_step(image_batch, generator, discriminator, generator_optimizer, discriminator_optimizer)
@@ -184,6 +188,7 @@ def preprocess_input(img):
 def main():
     num_images = len(os.listdir(os.path.join(IMAGE_DIR, 'images')))
     steps = num_images // BATCH_SIZE
+    print('steps', steps)
 
     train_datagen = ImageDataGenerator(
         preprocessing_function=preprocess_input,
