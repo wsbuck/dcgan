@@ -10,7 +10,7 @@ import time
 from tensorflow.keras import layers
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-BATCH_SIZE = 128
+BATCH_SIZE = 64
 # BATCH_SIZE = 1
 NOISE_DIM = 100
 EPOCHS = 10000
@@ -29,24 +29,24 @@ def make_generator_model():
     assert model.output_shape == (None, 4, 4, 1024)  # None is the batch size
 
     model.add(layers.Conv2DTranspose(
-        512, (4, 4), strides=(2, 2), padding='same', use_bias=False))
+        512, (5, 5), strides=(2, 2), padding='same', use_bias=False))
     assert model.output_shape == (None, 8, 8, 512)
     model.add(layers.BatchNormalization())
     model.add(layers.LeakyReLU())
 
     model.add(layers.Conv2DTranspose(
-        256, (4, 4), strides=(2, 2), padding='same', use_bias=False))
+        256, (5, 5), strides=(2, 2), padding='same', use_bias=False))
     assert model.output_shape == (None, 16, 16, 256)
     model.add(layers.BatchNormalization())
     model.add(layers.LeakyReLU())
     
     model.add(layers.Conv2DTranspose(
-        128, (4, 4), strides=(2, 2), padding='same', use_bias=False))
+        128, (5, 5), strides=(2, 2), padding='same', use_bias=False))
     assert model.output_shape == (None, 32, 32, 128)
     model.add(layers.BatchNormalization())
     model.add(layers.LeakyReLU())
 
-    model.add(layers.Conv2DTranspose(3, (4, 4), strides=(2, 2),
+    model.add(layers.Conv2DTranspose(3, (5, 5), strides=(2, 2),
                                      padding='same', use_bias=False, activation='tanh'))
     assert model.output_shape == (None, 64, 64, 3)
 
@@ -55,22 +55,22 @@ def make_generator_model():
 
 def make_discriminator_model():
     model = tf.keras.Sequential()
-    model.add(layers.Conv2D(64, (4, 4), strides=(2, 2), padding='same',
+    model.add(layers.Conv2D(64, (5, 5), strides=(2, 2), padding='same',
                             input_shape=[64, 64, 3]))
     model.add(layers.LeakyReLU())
     model.add(layers.Dropout(0.3))
 
-    model.add(layers.Conv2D(128, (4, 4), strides=(2, 2), padding='same'))
+    model.add(layers.Conv2D(128, (5, 5), strides=(2, 2), padding='same'))
     model.add(layers.LeakyReLU())
     model.add(layers.Dropout(0.3))
     
-    model.add(layers.Conv2D(256, (4, 4), strides=(2, 2), padding='same'))
+    model.add(layers.Conv2D(256, (5,5), strides=(2, 2), padding='same'))
     model.add(layers.LeakyReLU())
     model.add(layers.Dropout(0.3))
-    #
-    #model.add(layers.Conv2D(1024, (4, 4), strides=(2, 2), padding='same'))
-    #model.add(layers.LeakyReLU())
-    #model.add(layers.Dropout(0.3))
+
+    model.add(layers.Conv2D(512, (5, 5), strides=(2, 2), padding='same'))
+    model.add(layers.LeakyReLU())
+    model.add(layers.Dropout(0.3))
 
     model.add(layers.Flatten())
     model.add(layers.Dense(1))
@@ -109,6 +109,7 @@ def train_step(images, generator, discriminator, generator_optimizer, discrimina
 
     generator_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
     discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
+    return gen_loss, disc_loss
 
 def get_loss(images, generator, discriminator):
     noise = tf.random.normal([BATCH_SIZE, NOISE_DIM])
@@ -143,8 +144,8 @@ def train(dataset, epochs, steps):
 
     #generator_optimizer = tf.keras.optimizers.Adam(0.002, beta_1=0.5, beta_2=0.999)
     #discriminator_optimizer = tf.keras.optimizers.Adam(0.002, beta_1=0.5, beta_2=0.999)
-    generator_optimizer = tf.keras.optimizers.Adam(1e-4)
-    discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
+    generator_optimizer = tf.keras.optimizers.Adam(0.0002, beta_1=0.5)
+    discriminator_optimizer = tf.keras.optimizers.Adam(0.0002, beta_1=0.5)
     
     checkpoint_dir = './training_checkpoints'
     checkpoint_prefix = os.path.join(checkpoint_dir, 'ckpt')
@@ -160,7 +161,11 @@ def train(dataset, epochs, steps):
         for step in range(steps):
             progbar.update(step + 1)
             image_batch, _ = dataset.next()
-            train_step(image_batch, generator, discriminator, generator_optimizer, discriminator_optimizer)
+            gen_loss, disc_loss = train_step(image_batch, generator, discriminator, generator_optimizer, discriminator_optimizer)
+            if step % 100 == 0:
+                print('\n')
+                tf.print(gen_loss)
+                tf.print(disc_loss)
         
         generate_and_save_images(generator, epoch + 1, seed)
 
@@ -168,12 +173,12 @@ def train(dataset, epochs, steps):
             checkpoint.save(file_prefix = checkpoint_prefix)
         
         print('Time for epoch {} is {} sec'.format(epoch + 1, time.time() - start))
-        print("*" * 20)
-        print("Gen Loss & Disc Loss")
-        gen_loss, disc_loss = get_loss(image_batch, generator, discriminator)
-        tf.print(gen_loss)
-        tf.print(disc_loss)
-        print("*" * 20)
+        #print("*" * 20)
+        #print("Gen Loss & Disc Loss")
+        #gen_loss, disc_loss = get_loss(image_batch, generator, discriminator)
+        #tf.print(gen_loss)
+        #tf.print(disc_loss)
+        #print("*" * 20)
 
     generate_and_save_images(generator, epochs, seed)
 
