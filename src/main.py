@@ -127,7 +127,7 @@ def generate_and_save_images(model, epoch, test_input):
 
     for i in range(predictions.shape[0]):
         plt.subplot(4, 4, i + 1)
-        plt.imshow((predictions[i, :, :, :] * 127.5 + 127.5))
+        plt.imshow((predictions[i, :, :, :].numpy() * 127.5 + 127.5).astype(np.int))
         plt.axis('off')
     
     plt.savefig('./generated_images/image_at_epoch{:04d}.png'.format(epoch))
@@ -157,8 +157,7 @@ def train(dataset, epochs, steps):
 
     for epoch in range(epochs):
         start = time.time()
-        #for step in range(steps):
-        for step in range(10):
+        for step in range(steps):
             progbar.update(step + 1)
             image_batch, _ = dataset.next()
             train_step(image_batch, generator, discriminator, generator_optimizer, discriminator_optimizer)
@@ -188,7 +187,6 @@ def preprocess_input(img):
 def main():
     num_images = len(os.listdir(os.path.join(IMAGE_DIR, 'images')))
     steps = num_images // BATCH_SIZE
-    print('steps', steps)
 
     train_datagen = ImageDataGenerator(
         preprocessing_function=preprocess_input,
