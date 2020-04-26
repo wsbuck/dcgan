@@ -1,7 +1,10 @@
 env/
 generated_images/
 training_checkpoints/
+tensorflowjs/
+saved_model/
 data/
 *.pyc
 *.ipynb
 .DS_Store
+.python-version
