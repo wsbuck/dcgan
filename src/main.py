@@ -17,7 +17,7 @@ EPOCHS = 10000
 
 # IMAGE_DIR = './data/celeba'
 # IMAGE_DIR = '/media/HDD/celeba-hq/images/celeba-hq/celeba-64'
-IMAGE_DIR = '/media/HDD/celeba/align'
+IMAGE_DIR = '/media/HDD/GANs/dcgan/cropped_images/'
 
 def make_generator_model():
     model = tf.keras.Sequential()

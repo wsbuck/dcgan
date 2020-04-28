@@ -1,6 +1,7 @@
 env/
 generated_images/
 training_checkpoints/
+cropped_images/
 tensorflowjs/
 saved_model/
 data/
@@ -8,3 +9,4 @@ data/
 *.ipynb
 .DS_Store
 .python-version
+*.zip
